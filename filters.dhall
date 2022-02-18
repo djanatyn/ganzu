@@ -1,26 +1,12 @@
-let Move
-    : Type
-    = { destination_directory : Text }
-
-let Copy
-    : Type
-    = { destination_directory : Text }
-
 let FilterAction
     : Type
-    = < Move : Move | Copy : Copy >
-
-let Regex
-    : Type
-    = { regex : Text }
-
-let Mimetype
-    : Type
-    = { mimetype : Text }
+    = < Move : { destination_directory : Text }
+      | Copy : { destination_directory : Text }
+      >
 
 let Filter
     : Type
-    = < Regex : Regex | Mimetype : Mimetype >
+    = < Regex : { regex : Text } | Mimetype : { mimetype : Text } >
 
 let action
     : FilterAction
