@@ -1,15 +1,22 @@
 let FilterAction
     : Type
-    = < Move : { destination_directory : Text }
-      | Copy : { destination_directory : Text }
-      >
+    = < Move : { dest : Text } | Copy : { dest : Text } >
 
 let Filter
     : Type
-    = < Regex : { regex : Text } | Mimetype : { mimetype : Text } >
+    = < Regex : Text | Mimetype : Text >
 
-let action
-    : FilterAction
-    = FilterAction.Move { destination_directory = "folder" }
+let Predicate
+    : Type
+    = < Check : Filter | And : List Filter | Or : List Filter >
 
-in  action
+let Rule
+    : Type
+    = { name : Text, match : Predicate, action : FilterAction }
+
+in    [ { name = "copy images"
+        , match = Predicate.Check (Filter.Regex ".(png|jpg)\$")
+        , action = FilterAction.Move { dest = "images" }
+        }
+      ]
+    : List Rule

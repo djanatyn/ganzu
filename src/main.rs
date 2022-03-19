@@ -48,14 +48,14 @@ struct FileProbe {
 #[derive(Debug, Deserialize)]
 struct Move {
     /// Destination to move the file.
-    destination_directory: String,
+    dest: String,
 }
 
 /// Action to copy a matched file.
 #[derive(Debug, Deserialize)]
 struct Copy {
     /// Destination to copy the file.
-    destination_directory: String,
+    dest: String,
 }
 
 /// Actions to take against filtered files.
@@ -79,6 +79,22 @@ enum Filter {
     Mimetype(String),
 }
 
+/// Predicate, containing one or more filters.
+#[derive(Debug, Deserialize)]
+enum Predicate {
+    Check(Filter),
+    And(Vec<Filter>),
+    Or(Vec<Filter>),
+}
+
+/// Predicate, containing one or more filters.
+#[derive(Debug, Deserialize)]
+struct Rule {
+    name: String,
+    #[serde(alias = "match")]
+    matcher: Predicate,
+    action: FilterAction,
+}
 /// Probe a potential path to a file provided by the user.
 fn probe_file(input_name: &str) -> io::Result<FileProbe> {
     let absolute_path = PathBuf::from(input_name).canonicalize()?;
@@ -110,7 +126,7 @@ fn main() -> io::Result<()> {
 
     // try reading dhall filter config
     // TODO: read filter file from arguments
-    let filters: serde_dhall::Result<FilterAction> =
+    let filters: serde_dhall::Result<Vec<Rule>> =
         serde_dhall::from_str(include_str!("../filters.dhall")).parse();
     println!("read filters: {filters:#?}");
 
