@@ -1,10 +1,25 @@
 #![feature(stdin_forwarders)]
 
 use clap::Parser;
+use miette::{Diagnostic, Result};
 use nix::fcntl;
 use nix::sys::stat::{fstat, FileStat, Mode};
+use std::collections::HashMap;
 use std::io;
 use std::path::PathBuf;
+use thiserror::Error;
+
+#[derive(Debug, Diagnostic, Error)]
+enum Error {
+    #[error("error reading input: {0:?}")]
+    InputFailure(io::Error),
+
+    #[error("failed to canonicalize path: {0:?}")]
+    CanonicalizeFailed(io::Error),
+
+    #[error("failed to probe file: {error:?}")]
+    ProbeFailed { path: PathBuf, error: nix::Error },
+}
 
 /// Command line arguments.
 #[derive(Parser, Debug)]
@@ -70,10 +85,20 @@ struct Rule {
 }
 
 /// Probe a potential path to a file provided by the user.
-fn probe_file(input_name: &str) -> io::Result<FileProbe> {
-    let absolute_path = PathBuf::from(input_name).canonicalize()?;
-    let fd = fcntl::open(&absolute_path, fcntl::OFlag::O_RDONLY, Mode::S_IRUSR)
-        .expect("could not open file");
+fn probe_file(input_name: &str) -> Result<FileProbe> {
+    let absolute_path = match PathBuf::from(input_name).canonicalize() {
+        Ok(path) => path,
+        Err(e) => Err(Error::CanonicalizeFailed(e))?,
+    };
+
+    let fd = match fcntl::open(&absolute_path, fcntl::OFlag::O_RDONLY, Mode::S_IRUSR) {
+        Ok(fd) => fd,
+        Err(error) => Err(Error::ProbeFailed {
+            path: absolute_path.clone(),
+            error,
+        })?,
+    };
+
     let stat = fstat(fd).expect("could not stat file");
     let mimetype = tree_magic::from_filepath(&absolute_path);
 
@@ -85,10 +110,10 @@ fn probe_file(input_name: &str) -> io::Result<FileProbe> {
     })
 }
 
-/// Read stdin, probe files, and read filters.
-fn main() -> io::Result<()> {
+/// Read stdin, probe files.
+fn main() -> Result<()> {
     // TODO: parameterize behavior on subcommand
-    let args = Args::parse();
+    let _args = Args::parse();
 
     let _rules: Vec<Rule> = vec![Rule {
         filters: vec![
@@ -98,14 +123,18 @@ fn main() -> io::Result<()> {
         action: FilterAction::Move { dest: "images" },
     }];
 
-    // reading lines of stdin, probe files
+    let mut probes: HashMap<String, Result<FileProbe>> = HashMap::new();
     let stdin = io::stdin();
-    let files = stdin
-        .lines()
-        .map(|line| probe_file(&line.expect("error reading input")))
-        .collect::<Vec<_>>();
 
-    dbg!(files);
+    for line in stdin.lines() {
+        let text = match line {
+            Ok(text) => text,
+            Err(e) => Err(Error::InputFailure(e))?,
+        };
+        probes.insert(text.to_string(), probe_file(&text));
+    }
+
+    dbg!(probes);
 
     Ok(())
 }
