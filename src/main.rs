@@ -1,11 +1,8 @@
 #![feature(stdin_forwarders)]
 
-extern crate tree_magic;
-
 use clap::Parser;
 use nix::fcntl;
 use nix::sys::stat::{fstat, FileStat, Mode};
-use serde::Deserialize;
 use std::io;
 use std::path::PathBuf;
 
@@ -25,7 +22,7 @@ enum Action {
     Plan,
 
     /// Execute planned actions.
-    Sweep,
+    Do,
 }
 
 /// Probe of file state.
@@ -44,57 +41,34 @@ struct FileProbe {
     mimetype: String,
 }
 
-/// Action to move a matched file.
-#[derive(Debug, Deserialize)]
-struct Move {
-    /// Destination to move the file.
-    dest: String,
-}
-
-/// Action to copy a matched file.
-#[derive(Debug, Deserialize)]
-struct Copy {
-    /// Destination to copy the file.
-    dest: String,
-}
-
-/// Actions to take against filtered files.
-#[derive(Debug, Deserialize)]
-enum FilterAction {
-    /// Move a matched file into a destination directory.
-    Move(Move),
-
-    /// Copy a matched file into a destination directory.
-    Copy(Copy),
-}
-
 /// Filter for files.
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 enum Filter {
     /// Filter against filename using a regular expression.
     /// This matches against the canonicalized absolute path.
-    Regex(String),
+    Regex(&'static str),
 
     /// Filter against filenames with a mimetype.
-    Mimetype(String),
+    Mimetype(&'static str),
+}
+
+/// Actions to take against filtered files.
+#[derive(Debug)]
+enum FilterAction {
+    /// Move a matched file into a destination directory.
+    Move { dest: &'static str },
+
+    /// Copy a matched file into a destination directory.
+    Copy { dest: &'static str },
 }
 
 /// Predicate, containing one or more filters.
-#[derive(Debug, Deserialize)]
-enum Predicate {
-    Check(Filter),
-    And(Vec<Filter>),
-    Or(Vec<Filter>),
-}
-
-/// Predicate, containing one or more filters.
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct Rule {
-    name: String,
-    #[serde(alias = "match")]
-    matcher: Predicate,
+    filters: Vec<Filter>,
     action: FilterAction,
 }
+
 /// Probe a potential path to a file provided by the user.
 fn probe_file(input_name: &str) -> io::Result<FileProbe> {
     let absolute_path = PathBuf::from(input_name).canonicalize()?;
@@ -116,19 +90,22 @@ fn main() -> io::Result<()> {
     // TODO: parameterize behavior on subcommand
     let args = Args::parse();
 
+    let _rules: Vec<Rule> = vec![Rule {
+        filters: vec![
+            Filter::Mimetype("image/png"),
+            Filter::Mimetype("image/jpeg"),
+        ],
+        action: FilterAction::Move { dest: "images" },
+    }];
+
     // reading lines of stdin, probe files
     let stdin = io::stdin();
     let files = stdin
         .lines()
         .map(|line| probe_file(&line.expect("error reading input")))
         .collect::<Vec<_>>();
-    println!("probed: {files:#?}");
 
-    // try reading dhall filter config
-    // TODO: read filter file from arguments
-    let filters: serde_dhall::Result<Vec<Rule>> =
-        serde_dhall::from_str(include_str!("../filters.dhall")).parse();
-    println!("read filters: {filters:#?}");
+    dbg!(files);
 
     Ok(())
 }
