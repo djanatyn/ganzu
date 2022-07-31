@@ -1,1 +1,0 @@
-< Regex : Text | Mimetype : Text >
