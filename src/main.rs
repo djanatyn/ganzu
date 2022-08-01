@@ -1,5 +1,3 @@
-#![feature(stdin_forwarders)]
-
 use clap::Parser;
 use miette::{Diagnostic, Result};
 use nix::fcntl;
@@ -19,6 +17,9 @@ enum Error {
 
     #[error("failed to probe file: {error:?}")]
     ProbeFailed { path: PathBuf, error: nix::Error },
+
+    #[error("failed to stat file: {error:?}")]
+    StatFailed { path: PathBuf, error: nix::Error },
 }
 
 /// Command line arguments.
@@ -99,7 +100,14 @@ fn probe_file(input_name: &str) -> Result<FileProbe> {
         })?,
     };
 
-    let stat = fstat(fd).expect("could not stat file");
+    let stat = match fstat(fd) {
+        Ok(stat) => stat,
+        Err(error) => Err(Error::StatFailed {
+            path: absolute_path.clone(),
+            error,
+        })?,
+    };
+
     let mimetype = tree_magic::from_filepath(&absolute_path);
 
     Ok(FileProbe {
@@ -139,21 +147,9 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-// motivation
-// - clean up files using declarative actions and filters
-// - (similar to https://github.com/tfeldmann/organize)
-//
-// important differences
-// - use dhall for configuration, not yaml
-// - written in rust, not python
-//
-// usage
-// - `cd ~/Downloads && magic-broom plan > downloads.broom`
-// - `magic-broom sweep ~/Downloads.broom`
-//
 // design decisions
 // - running `plan` cannot modify files
-// - running `sweep` will not modify files that have changed since the `plan`
+// - running `do` will not modify files that have changed since the `plan`
 // - use abstract types to represent actions, which can be serialized + type-checked
 // - do not search for files, operate on lists of files over stdin
 // - canonicalize to absolute paths for all operations
