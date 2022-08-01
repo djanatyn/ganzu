@@ -138,6 +138,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+// kdl
+// ---
+// meta {
+//   version "1.0"
+//   created "Tue, 1 Jul 2003 10:52:37 +0200"
+// }
+
 // design decisions
 // - running `plan` cannot modify files
 // - running `do` will not modify files that have changed since the `plan`
@@ -149,7 +156,6 @@ fn main() -> Result<()> {
 // - errors resolving files are reported, partial plans are still generated
 //
 // tests
-// - TODO: loading config
 // - TODO: match against files
 // - TODO: provide invalid files
 // - TODO: provide invalid destination directory
