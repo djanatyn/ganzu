@@ -11,13 +11,10 @@ use thiserror::Error;
 enum Error {
     #[error("error reading input: {0:?}")]
     InputFailure(io::Error),
-
     #[error("failed to canonicalize path: {0:?}")]
     CanonicalizeFailed(io::Error),
-
     #[error("failed to open file: {error:?}")]
     OpenFailed { path: PathBuf, error: nix::Error },
-
     #[error("failed to stat file: {error:?}")]
     StatFailed { path: PathBuf, error: nix::Error },
 }
@@ -36,7 +33,6 @@ struct Args {
 enum Action {
     /// Plan actions against filtered files.
     Plan,
-
     /// Execute planned actions.
     Do,
 }
@@ -46,13 +42,10 @@ enum Action {
 struct FileProbe {
     /// Initial name provided when searching for file.
     input_name: String,
-
     /// Absolute path, returned by canonicalize() method.
     absolute_path: PathBuf,
-
     /// FileStat returned, used for integrity checking.
     stat: FileStat,
-
     /// Mimetype returned with tree_magic::from_filepath.
     mimetype: String,
 }
@@ -63,7 +56,6 @@ enum Filter {
     /// Filter against filename using a regular expression.
     /// This matches against the canonicalized absolute path.
     Regex(&'static str),
-
     /// Filter against filenames with a mimetype.
     Mimetype(&'static str),
 }
@@ -73,7 +65,6 @@ enum Filter {
 enum FilterAction {
     /// Move a matched file into a destination directory.
     Move { dest: &'static str },
-
     /// Copy a matched file into a destination directory.
     Copy { dest: &'static str },
 }
