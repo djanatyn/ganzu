@@ -15,8 +15,8 @@ enum Error {
     #[error("failed to canonicalize path: {0:?}")]
     CanonicalizeFailed(io::Error),
 
-    #[error("failed to probe file: {error:?}")]
-    ProbeFailed { path: PathBuf, error: nix::Error },
+    #[error("failed to open file: {error:?}")]
+    OpenFailed { path: PathBuf, error: nix::Error },
 
     #[error("failed to stat file: {error:?}")]
     StatFailed { path: PathBuf, error: nix::Error },
@@ -94,7 +94,7 @@ fn probe_file(input_name: &str) -> Result<FileProbe> {
 
     let fd = match fcntl::open(&absolute_path, fcntl::OFlag::O_RDONLY, Mode::S_IRUSR) {
         Ok(fd) => fd,
-        Err(error) => Err(Error::ProbeFailed {
+        Err(error) => Err(Error::OpenFailed {
             path: absolute_path.clone(),
             error,
         })?,
