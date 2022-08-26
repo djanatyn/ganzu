@@ -144,25 +144,21 @@ fn main() -> Result<()> {
 //   version "1.0"
 //   created "Tue, 1 Jul 2003 10:52:37 +0200"
 // }
-
-// design decisions
-// - running `plan` cannot modify files
-// - running `do` will not modify files that have changed since the `plan`
-// - use abstract types to represent actions, which can be serialized + type-checked
-// - do not search for files, operate on lists of files over stdin
-// - canonicalize to absolute paths for all operations
-// - invalid destination paths fail the entire plan
-// - run fstat against files before considering a file for potential actions
-// - errors resolving files are reported, partial plans are still generated
 //
+// files {
+//   file "/proc" {
+//     mimetype "inode/directory"
+//     absolute "/proc"
+//     timestamp {
+//       atime "15698164562"
+//       ctime "15698164562"
+//       mtime "15698164562"
+//     }
+//   }
+// }
+
 // tests
 // - TODO: match against files
 // - TODO: provide invalid files
 // - TODO: provide invalid destination directory
 // - TODO: symlink functionality
-//
-// design questions
-// - TODO: how should directories be handled? ignore them?
-// - TODO: when should duplicate files on input be resolved?
-// - TODO: is special behavior needed for symlinks?
-// - TODO: should fstat be asynchronous?
