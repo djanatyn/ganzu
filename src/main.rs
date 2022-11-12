@@ -55,18 +55,18 @@ struct FileProbe {
 enum Filter {
     /// Filter against filename using a regular expression.
     /// This matches against the canonicalized absolute path.
-    Regex(&'static str),
+    Regex(String),
     /// Filter against filenames with a mimetype.
-    Mimetype(&'static str),
+    Mimetype(String),
 }
 
 /// Actions to take against filtered files.
 #[derive(Debug)]
 enum FilterAction {
     /// Move a matched file into a destination directory.
-    Move { dest: &'static str },
+    Move { dest: String },
     /// Copy a matched file into a destination directory.
-    Copy { dest: &'static str },
+    Copy { dest: String },
 }
 
 /// Predicate, containing one or more filters.
@@ -116,10 +116,12 @@ fn main() -> Result<()> {
 
     let _rules: Vec<Rule> = vec![Rule {
         filters: vec![
-            Filter::Mimetype("image/png"),
-            Filter::Mimetype("image/jpeg"),
+            Filter::Mimetype("image/png".into()),
+            Filter::Mimetype("image/jpeg".into()),
         ],
-        action: FilterAction::Move { dest: "images" },
+        action: FilterAction::Move {
+            dest: "images".into(),
+        },
     }];
 
     let mut probes: HashMap<String, Result<FileProbe>> = HashMap::new();
