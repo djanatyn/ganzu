@@ -24,21 +24,17 @@ impl FileSnapshot {
             .canonicalize()
             .map_err(Error::CanonicalizeFailed)?;
 
-        let fd = match fcntl::open(&absolute_path, fcntl::OFlag::O_RDONLY, Mode::S_IRUSR) {
-            Ok(fd) => fd,
-            Err(error) => Err(Error::OpenFailed {
+        let fd = fcntl::open(&absolute_path, fcntl::OFlag::O_RDONLY, Mode::S_IRUSR).map_err(
+            |error| Error::OpenFailed {
                 path: absolute_path.clone(),
                 error,
-            })?,
-        };
+            },
+        )?;
 
-        let stat = match fstat(fd) {
-            Ok(stat) => stat,
-            Err(error) => Err(Error::StatFailed {
-                path: absolute_path.clone(),
-                error,
-            })?,
-        };
+        let stat = fstat(fd).map_err(|error| Error::StatFailed {
+            path: absolute_path.clone(),
+            error,
+        })?;
 
         let mimetype = tree_magic::from_filepath(&absolute_path);
 
