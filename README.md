@@ -2,7 +2,8 @@
 
 [`ganzu`](https://vlasisku.lojban.org/ganzu) is a rust library to organize your files. it is inspired by [organize](https://organize.readthedocs.io/en/latest/), the file management automation tool.
 
->  ganzu -gaz- gismu
+> ganzu -gaz- gismu
+
 > x1 organizes x2 [relative chaos] into x3 [ordered/organized result] by system/principle(s) x4.
 
 with ganzu, instead of placing your rules in a configuration file which is evaluated at runtime, you build a new rust program!
