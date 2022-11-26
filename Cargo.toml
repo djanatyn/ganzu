@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-knuffel = "2.0.0"
+kdl = "4.6.0"
+knuffel = "2.0"
 tree_magic = "0.2.3"
 clap = { version = "3.1.0", features = ["derive"] }
 serde = { version = "1.0.117", features = ["derive"] }
