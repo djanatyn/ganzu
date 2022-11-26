@@ -1,43 +1,31 @@
-///! organize files according to rules
-///!
-///! testing:
-///! TODO: add test directory
-///! TODO: test parsing example manifest
-///! TODO: test generating / parsing kdl for Meta
-///! TODO: test generating / parsing kdl for FileSnapshot
-///!
-///! control flow:
-///! TODO: fail if unable to snapshot files
-///! TODO: fail if unable to match files
-///!
-///! output:
-///! TODO: report files successfully snapshotted
-///! TODO: report files matched
-///! TODO: output kdl manifest
-///!
 use clap::Parser;
+use ganzu::error::{Error, Ganzu};
+use ganzu::example;
+use ganzu::file::FileSnapshot;
 use std::collections::HashMap;
 use std::io;
-use std::path::PathBuf;
 
-mod args;
-mod config;
-mod error;
-mod example;
-mod file;
-mod filter;
-mod kdl;
-mod rule;
+/// Command line arguments.
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+pub struct Args {
+    /// Action subcommand.
+    #[clap(subcommand)]
+    pub action: Action,
+}
 
-use args::Args;
-use config::Config;
-use error::{Error, Ganzu};
-use file::FileSnapshot;
-use filter::{Filter, FilterAction};
-use rule::Rule;
+/// Subcommands representing command line actions.
+#[derive(Debug, clap::Subcommand)]
+pub enum Action {
+    /// Plan actions against filtered files.
+    Plan,
+    /// Execute planned actions.
+    Do,
+}
 
 /// Read stdin, probe files.
 fn main() -> Ganzu<()> {
+    // TODO: use arguments
     let args = Args::parse();
 
     // define filters and actions

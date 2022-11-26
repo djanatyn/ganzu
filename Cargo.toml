@@ -16,3 +16,11 @@ bincode = "1.3.3"
 miette = { version = "3.3.0", features = ["fancy"] }
 thiserror = "1.0.30"
 chrono = "0.4.19"
+
+[lib]
+name = "ganzu"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ganzu"
+path = "src/bin/ganzu.rs"
