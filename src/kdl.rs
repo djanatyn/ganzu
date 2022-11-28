@@ -1,8 +1,12 @@
+const EXAMPLE_META: &'static str = r#"
+meta version="1.0" created="1669472812"
+"#;
+
 const EXAMPLE_MANIFEST: &'static str = r#"
 meta version="1.0" created="1669472812"
 
 matches {
-  file {
+  files {
     snapshot \
         input_name="query.graphql" \
         absolute_path="/home/djanatyn/query.graphql" \
@@ -24,10 +28,21 @@ pub struct Meta {
 }
 
 #[derive(knuffel::Decode, Debug)]
+enum TopLevelNode {
+    Meta(Meta),
+}
+
+#[derive(knuffel::Decode, Debug)]
 pub struct Doc {
     #[knuffel(child)]
     meta: Meta,
+
+    #[knuffel(child)]
+    matches: Matches,
 }
+
+#[derive(knuffel::Decode, Debug)]
+pub struct Matches {}
 
 /// WIP: experimenting with kdl
 pub fn kdl_exploration() {
@@ -45,4 +60,23 @@ pub fn kdl_exploration() {
     println!("{}", doc.to_string());
 
     dbg!(knuffel::parse::<Doc>("example.kdl", &doc.to_string()));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{TopLevelNode, EXAMPLE_MANIFEST, EXAMPLE_META};
+
+    #[test]
+    fn parse_example_manifest_kdl() {
+        dbg!(EXAMPLE_MANIFEST.parse::<kdl::KdlDocument>()).unwrap();
+    }
+
+    #[test]
+    fn parse_example_meta() {
+        dbg!(knuffel::parse::<Vec<TopLevelNode>>(
+            "meta.kdl",
+            EXAMPLE_META
+        ))
+        .unwrap();
+    }
 }
