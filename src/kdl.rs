@@ -1,3 +1,17 @@
+//! Parse and generate KDL manifests.
+//!
+//! These manifests describe:
+//! - what files are meant to be transferred,
+//! - the aboslute path of each file,
+//! - the last modification time of each file, and
+//! - what action to perform on each file.
+//!
+//! This means that we can "execute" a manifest after validating it.
+//!
+//! To validate a manifest, we need to check:
+//! - that all paths are still valid,
+//! - that no files have been modified since the manifest was created.
+
 const EXAMPLE_META: &'static str = r#"
 meta version="1.0" created="1669472812"
 "#;
